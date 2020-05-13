@@ -1,0 +1,1 @@
+# tmp-react-component-generator
