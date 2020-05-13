@@ -1,0 +1,31 @@
+{
+  "name": "wip-react-component-generator",
+  "version": "0.2.0",
+  "description": "",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "upgrade": "yarn upgrade-interactive --latest"
+  },
+  "keywords": [],
+  "author": {
+    "name": "Rémi Fruteau de Laclos",
+    "email": "remi.fruteau@gmail.com",
+    "url": "https://github.com/djedje72"
+  },
+  "license": "MIT",
+  "bin": {
+    "rcg": "rcg"
+  },
+  "dependencies": {
+    "chalk": "4.1.0",
+    "glob": "7.1.6",
+    "yargs": "16.1.1"
+  },
+  "devDependencies": {
+    "@types/jest": "26.0.15",
+    "@types/react": "17.0.0",
+    "@types/react-test-renderer": "17.0.0",
+    "@types/testing-library__react": "10.2.0",
+    "@types/yargs": "15.0.10"
+  }
+}

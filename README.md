@@ -1,1 +1,1 @@
-# tmp-react-component-generator
+# wip-react-component-generator

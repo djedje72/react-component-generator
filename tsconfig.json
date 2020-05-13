@@ -1,0 +1,9 @@
+{
+    "compilerOptions": {
+        "target": "ESNext",
+        "noImplicitAny": true,
+        "allowJs": true
+    },
+    "include": ["src", "template"],
+    "exclude": ["node_modules"]
+}
