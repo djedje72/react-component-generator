@@ -1,5 +1,6 @@
 const fs = require("fs");
 const chalk = require("chalk");
+const { resolve, sep, join } = require("path");
 
 exports.command = "$0 <path>";
 exports.aliases = [];
@@ -23,6 +24,12 @@ exports.builder = yargs => yargs
             describe: "target language",
             choices: ["js", "ts"],
             default: "js"
+        },
+        "force": {
+            alias: "f",
+            describe: "overwrite all existings files",
+            type:"boolean",
+            default: false
         }
     })
     .positional("path", {
@@ -31,56 +38,66 @@ exports.builder = yargs => yargs
     })
     .help()
     .version()
+
+const relativeTemplatePath = (folder, filePath) => resolve(filePath).replace(folder + sep, "");
+
 exports.handler = argv => {
-    const { resolve, sep, join } = require("path");
-    const {complex, language, basePath} = argv;
+    const {complex, language, basePath, force} = argv;
     const path = resolve(basePath, argv.path);
     console.log("complex", complex);
     console.log("language", language);
     console.log("basePath", basePath);
+    console.log("force", force);
     const componentName = path.split(sep).pop();
-    // for local debugging
-    // path = resolve(__dirname, "../dist");
 
-    const processfiles = (folder) => getAllFiles(folder, (err, res) => {
-        if (err) {
-            console.error("Error", err);
-        } else {
+    const processfiles = folders => {
+        try {
+            const allFiles = getAllFiles(folders);
             fs.mkdirSync(`${path}`, { recursive: true })
-            const relativeTemplatePath = f => resolve(f).replace(folder + sep, "");
-            res.filter(f => fs.lstatSync(f).isDirectory()).forEach(f => {
-                const dir = replaceName(join(path, relativeTemplatePath(f)), componentName);
+            allFiles.filter(([f]) => fs.lstatSync(f).isDirectory()).forEach(([f, templateDir]) => {
+                const dir = replaceName(join(path, relativeTemplatePath(templateDir, f)), componentName);
                 fs.mkdirSync(dir, { recursive: true })
                 console.log(`${chalk.cyan(dir)} ${chalk.green("OK !")}`);
             });
-            res.filter(f => fs.lstatSync(f).isFile()).forEach(f => {
-                const file = replaceName(join(path, relativeTemplatePath(f)), componentName);
+            allFiles.filter(([f]) => fs.lstatSync(f).isFile()).forEach(([f, templateDir])  => {
+                const file = replaceName(join(path, relativeTemplatePath(templateDir, f)), componentName);
                 const content = fs.readFileSync(f, "utf8")
                 try {
                     fs.writeFileSync(file, replaceName(content, componentName), { flag: 'wx' });
                 } catch (e) {
                     if (e.code !== 'EEXIST') {
-                        throw err;
+                        throw e;
+                    }
+                    if (force) {
+                        fs.writeFileSync(file, replaceName(content, componentName));
                     }
                 }
                 console.log(`${chalk.cyan(file)} ${chalk.green("OK !")}`);
             });
+        } catch (e) {
+            console.error(e);
+            throw e;
         }
-    });
+    };
 
     const templateFolder = resolve(__dirname, `../templates/${language}`);
     console.log(`generating ${complex ? "complex": "basic"} component ${chalk.yellow(componentName)} at ${chalk.cyan(path)}...`);
-    const basicFolder = resolve(templateFolder, "basic");
-    processfiles(basicFolder);
+    const files = [resolve(templateFolder, "basic")];
     if (complex) {
-        const complexFolder = resolve(templateFolder, "complex");
-        processfiles(complexFolder);
+        files.push(resolve(templateFolder, "complex"));
     }
+    processfiles(files);
 };
 
-const getAllFiles = (src, callback) => {
-    require("glob")(src + "/**/*", callback);
-};
+const getAllFiles = (folders) => Object.values(
+    Object.fromEntries(
+        folders.flatMap(
+            src => require("glob")
+                .sync(src + "/**/*")
+                .map(f => [relativeTemplatePath(src, f), [f, src]])
+        )
+    )
+);
 
 
 const replaceName = (str, name) => str
