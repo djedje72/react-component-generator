@@ -17,7 +17,7 @@ exports.builder = yargs => yargs
             alias: "p",
             describe: "base path to generate component",
             type:"string",
-            default: "src"
+            default: ""
         },
         "language": {
             alias: "l",
