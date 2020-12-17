@@ -1,4 +1,4 @@
-const propTypes = {}​​;
+const propTypes = {};
 
 const __Name = () => <>__name component works !</>;
 
